@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FFS Match Overlay</title>
+    <!-- Opened as a local file? OBS's "Local file" checkbox serves the
+         page from http://absolute/C:/..., and plain browsers use
+         file:///. Neither can reach tosu or (for file://) the data
+         files, so the overlay would never update. Jump to the same
+         page served by tosu (everything after its "static" folder). -->
+    <script>
+        if (location.protocol === 'file:' || location.hostname === 'absolute') {
+            const path = decodeURIComponent(location.pathname).replace(/\\/g, '/');
+            const i = path.toLowerCase().lastIndexOf('/static/');
+            if (i !== -1) {
+                location.replace(`http://127.0.0.1:24050/${path.slice(i + '/static/'.length)}${location.search}`);
+            } else {
+                document.write('<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;' +
+                    'background:#11141c;color:#fff;font:24px sans-serif;text-align:center;padding:40px">' +
+                    'Open this overlay through tosu, not as a local file:<br>' +
+                    'http://127.0.0.1:24050/&lt;folder&gt;/mappool/index.html</div>');
+            }
+        }
+    </script>
+    <!-- OBS browser sources cache files aggressively, so a refresh
+         can keep running old code. Every file gets a fresh ?v= tag
+         so each refresh loads the latest version. -->
+    <script>
+        window.FFS_VERSION = Date.now();
+        for (const href of ['../shared/common.css', 'style.css', 'gameplay.css']) {
+            document.write(`<link rel="stylesheet" href="${href}?v=${window.FFS_VERSION}">`);
+        }
+    </script>
+</head>
+<body>
+    <!-- ======================================================
+         STAGE: the 1920x1080 area that goes on stream.
+         Each scene is a <section class="scene">; only the one
+         with .active is shown (see switchScene() in gameplay.js).
+         ====================================================== -->
+    <div id="stage">
+        <section id="scene-mappool" class="scene active">
+            <!-- Looping background; covers the clients underneath.
+                 Disappears with this scene. -->
+            <video id="bg-video" src="../main.mp4" autoplay muted loop playsinline></video>
+
+            <!-- HEADER -->
+            <header id="header">
+                <div class="team-header red" id="red-header" data-team="red" title="Click: RED bans">
+                    <img class="team-icon" id="red-icon" src="../icons/placeholder.png" alt="">
+                    <div class="team-meta">
+                        <div class="team-name" id="red-name">RED TEAM</div>
+                        <div class="team-acronym" id="red-acronym">RED</div>
+                    </div>
+                </div>
+
+                <div id="branding">
+                    <div class="brand-sub">:dorobald:</div>
+                    <div class="brand-main">FULL FORCE SCRAMBLE</div>
+                    <div id="round-tag">ROUND</div>
+                </div>
+
+                <div class="team-header blue" id="blue-header" data-team="blue" title="Click: BLUE bans">
+                    <div class="team-meta">
+                        <div class="team-name" id="blue-name">BLUE TEAM</div>
+                        <div class="team-acronym" id="blue-acronym">BLU</div>
+                    </div>
+                    <img class="team-icon" id="blue-icon" src="../icons/placeholder.png" alt="">
+                </div>
+            </header>
+
+            <!-- RED ROW: lineup | bans | picks 1..6 (left to right) -->
+            <div class="team-row" id="row-red" data-team="red">
+                <div class="lineup-card red" title="Left click: +1 · Right click: -1">
+                    <div class="card-label">LINEUP</div>
+                    <div class="lineup-list" id="red-lineup"></div>
+                    <div class="score" id="red-score">0</div>
+                </div>
+                <div class="ban-card" id="red-bans"></div>
+                <div class="pick-slots" id="red-picks"></div>
+            </div>
+
+            <!-- BLUE ROW: mirrored -- picks 6..1 | bans | lineup -->
+            <div class="team-row" id="row-blue" data-team="blue">
+                <div class="lineup-card blue" title="Left click: +1 · Right click: -1">
+                    <div class="card-label">LINEUP</div>
+                    <div class="lineup-list" id="blue-lineup"></div>
+                    <div class="score" id="blue-score">0</div>
+                </div>
+                <div class="ban-card" id="blue-bans"></div>
+                <div class="pick-slots" id="blue-picks"></div>
+            </div>
+
+            <!-- PICK BANNER: covers the picking team's row for a few
+                 seconds after a pick, then fades back out. -->
+            <div id="pick-banner" aria-hidden="true">
+                <div class="banner-team">
+                    <img id="banner-team-icon" src="../icons/placeholder.png" alt="">
+                    <div id="banner-team-label">RED</div>
+                </div>
+                <div class="banner-body">
+                    <div id="banner-bg"></div>
+                    <div class="banner-content">
+                        <div class="banner-meta">
+                            <div id="banner-title">Title</div>
+                            <div id="banner-artist">Artist</div>
+                            <div id="banner-mapper">mapped by Mapper</div>
+                        </div>
+                        <div class="banner-right">
+                            <div id="banner-sr">0.00★</div>
+                            <div id="banner-code">NM1</div>
+                        </div>
+                        <div class="banner-stats">
+                            <span class="stat"><span class="lbl">CS</span><span class="val" id="banner-cs">0.0</span></span>
+                            <span class="stat"><span class="lbl">AR</span><span class="val" id="banner-ar">0.0</span></span>
+                            <span class="stat"><span class="lbl">OD</span><span class="val" id="banner-od">0.0</span></span>
+                            <span class="stat"><span class="lbl">BPM</span><span class="val" id="banner-bpm">0</span></span>
+                            <span class="stat"><span class="lbl">LENGTH</span><span class="val" id="banner-length">0:00</span></span>
+                        </div>
+                    </div>
+                    <div class="banner-flash"></div>
+                </div>
+            </div>
+
+            <!-- TIEBREAKER CARD: covers both team rows. Yellow intro
+                 first, then the map itself (see showTiebreaker). -->
+            <div id="tb-banner" aria-hidden="true">
+                <div class="tb-intro">
+                    <div class="tb-intro-text">TIEBREAKER</div>
+                </div>
+                <div class="tb-reveal">
+                    <div id="tb-bg"></div>
+                    <div class="tb-content">
+                        <div class="tb-label marquee" id="tb-label"></div>
+                        <div id="tb-title">Artist - Title</div>
+                        <div id="tb-diff">[Difficulty]</div>
+                        <div id="tb-mapper">mapped by Mapper</div>
+                    </div>
+                    <div class="banner-flash"></div>
+                </div>
+            </div>
+
+            <!-- FOOTER: lobby chat + mappool grid -->
+            <footer id="footer">
+                <div id="chat-card">
+                    <div class="card-label">CHAT</div>
+                    <div class="chat-log" id="chat-log"></div>
+                </div>
+                <div id="pool-grid"></div>
+            </footer>
+        </section>
+
+        <!-- WINNER SCENE: blank (just the background) for 2s, then the
+             match winner. Shown by W, or automatically when the deciding
+             map's results screen closes. -->
+        <section id="scene-winner" class="scene">
+            <video id="winner-video" src="../main.mp4" muted loop playsinline></video>
+            <div class="winner-content">
+                <div class="winner-label">WINNER</div>
+                <img id="winner-icon" src="../icons/placeholder.png" alt="">
+                <div id="winner-name">TEAM</div>
+                <div class="winner-bar"></div>
+                <div id="winner-score">0 - 0</div>
+                <div class="winner-roster marquee" id="winner-roster"></div>
+            </div>
+        </section>
+
+        <!-- GAMEPLAY SCENE: transparent top 720px so the spectated
+             clients (480x360 each, 2 rows) show through from OBS. -->
+        <section id="scene-gameplay" class="scene">
+            <div id="gp-panel">
+                <!-- Score difference bar, touching the bottom of the clients -->
+                <div id="gp-bar-track">
+                    <div id="gp-bar-red"></div>
+                    <div id="gp-bar-blue"></div>
+                </div>
+
+                <div id="gp-scores">
+                    <div class="gp-score red" id="gp-score-red">0</div>
+                    <div class="gp-score blue" id="gp-score-blue">0</div>
+                    <div id="gp-diff"></div>
+                </div>
+
+                <div class="gp-team red" title="Left click: +1 · Right click: -1">
+                    <img class="team-icon" id="gp-red-icon" src="../icons/placeholder.png" alt="">
+                    <div class="gp-team-meta">
+                        <div class="gp-team-name" id="gp-red-name">RED TEAM</div>
+                        <div class="gp-team-acronym" id="gp-red-acronym">RED</div>
+                        <div class="gp-pips" id="gp-red-pips"></div>
+                    </div>
+                    <div class="gp-points" id="gp-red-points">0</div>
+                </div>
+
+                <div id="gp-center">
+                    <div id="gp-now-playing">
+                        <div id="gp-np-bg"></div>
+                        <div id="gp-np-code">—</div>
+                        <div class="gp-np-meta">
+                            <div class="gp-np-line">
+                                <span id="gp-np-tag"></span>
+                                <span id="gp-np-title"></span>
+                            </div>
+                            <div id="gp-np-sub"></div>
+                        </div>
+                        <div class="gp-np-right">
+                            <div id="gp-np-sr">0.00★</div>
+                            <div class="gp-np-stats">
+                                <span>CS <b id="gp-np-cs">0</b></span>
+                                <span>AR <b id="gp-np-ar">0</b></span>
+                                <span>OD <b id="gp-np-od">0</b></span>
+                                <span>BPM <b id="gp-np-bpm">0</b></span>
+                                <span><b id="gp-np-length">0:00</b></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="gp-chat">
+                        <div class="card-label">CHAT</div>
+                        <div class="chat-log" id="gp-chat-log"></div>
+                    </div>
+                    <div id="gp-first-to"></div>
+                </div>
+
+                <div class="gp-team blue" title="Left click: +1 · Right click: -1">
+                    <div class="gp-points" id="gp-blue-points">0</div>
+                    <div class="gp-team-meta">
+                        <div class="gp-team-name" id="gp-blue-name">BLUE TEAM</div>
+                        <div class="gp-team-acronym" id="gp-blue-acronym">BLU</div>
+                        <div class="gp-pips" id="gp-blue-pips"></div>
+                    </div>
+                    <img class="team-icon" id="gp-blue-icon" src="../icons/placeholder.png" alt="">
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ======================================================
+         CONTROL PANEL: sits to the right of the 1920px stage.
+         Make the OBS browser source 2400 wide and crop 480px off
+         the right so this is only visible in "Interact".
+         ====================================================== -->
+    <aside id="control-panel">
+        <div class="cp-group">
+            <div class="cp-label">Scene</div>
+            <div class="cp-buttons">
+                <button data-action="scene-mappool" id="cp-scene-mappool">Mappool <kbd>M</kbd></button>
+                <button data-action="scene-gameplay" id="cp-scene-gameplay">Gameplay <kbd>G</kbd></button>
+                <button data-action="scene-winner" id="cp-scene-winner">Winner <kbd>W</kbd></button>
+            </div>
+            <div class="cp-buttons">
+                <button data-action="finish-now">Finish map now</button>
+            </div>
+            <div class="cp-status" id="cp-scene">Scene: MAPPOOL</div>
+        </div>
+
+        <div class="cp-group">
+            <div class="cp-label">Phase (one at a time)</div>
+            <div class="cp-buttons">
+                <button data-phase="pick-red" class="red">Red pick <kbd>1</kbd></button>
+                <button data-phase="pick-blue" class="blue">Blue pick <kbd>2</kbd></button>
+            </div>
+            <div class="cp-buttons">
+                <button data-phase="ban-red" class="red">Red ban <kbd>Q</kbd></button>
+                <button data-phase="ban-blue" class="blue">Blue ban <kbd>E</kbd></button>
+                <button data-action="cancel-phase">Cancel <kbd>Esc</kbd></button>
+            </div>
+            <div class="cp-status" id="cp-phase">Idle</div>
+        </div>
+
+        <div class="cp-group">
+            <div class="cp-label">Team names</div>
+            <input id="cp-red-team" class="red" list="team-list" placeholder="Red team (left)" spellcheck="false">
+            <input id="cp-blue-team" class="blue" list="team-list" placeholder="Blue team (right)" spellcheck="false">
+            <datalist id="team-list"></datalist>
+            <div class="cp-buttons">
+                <button data-action="apply-teams">Apply</button>
+                <button data-action="swap-teams">Swap</button>
+                <button data-action="lobby-teams">Use lobby names</button>
+            </div>
+            <div class="cp-status" id="cp-team-source"></div>
+
+            <!-- Improv teams: osu! user ids per side. Overrides the
+                 rosters (not the team names) until cleared. -->
+            <details id="cp-manual">
+                <summary>Manual rosters (improv teams)</summary>
+                <table class="cp-roster">
+                    <thead><tr><th>#</th><th class="red">RED ids</th><th class="blue">BLUE ids</th></tr></thead>
+                    <tbody>
+                        <tr><td>1</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                        <tr><td>2</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                        <tr><td>3</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                        <tr><td>4</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                        <tr><td>5</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                        <tr><td>6</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                        <tr><td>7</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                        <tr><td>8</td><td><input class="red" data-roster="red" inputmode="numeric" spellcheck="false"></td><td><input class="blue" data-roster="blue" inputmode="numeric" spellcheck="false"></td></tr>
+                    </tbody>
+                </table>
+                <div class="cp-buttons">
+                    <button data-action="apply-roster">Apply rosters</button>
+                    <button data-action="clear-roster" class="danger">Clear</button>
+                </div>
+                <div class="cp-status" id="cp-roster-status"></div>
+            </details>
+        </div>
+
+        <div class="cp-group">
+            <div class="cp-label">Auto-pick on song change</div>
+            <div class="cp-buttons">
+                <button data-action="toggle-autopick" id="cp-autopick">On</button>
+            </div>
+        </div>
+
+        <div class="cp-group">
+            <div class="cp-label">Last pick result (score unchanged)</div>
+            <div class="cp-buttons">
+                <button data-action="winner-red" class="red">Red won</button>
+                <button data-action="winner-blue" class="blue">Blue won</button>
+                <button data-action="winner-clear">Clear</button>
+            </div>
+        </div>
+
+        <div class="cp-group">
+            <div class="cp-label">Misc</div>
+            <div class="cp-buttons">
+                <button data-action="test-banner">Test banner</button>
+                <button data-action="test-tiebreaker">Test tiebreaker</button>
+                <button data-action="reload-data">Reload data</button>
+                <button data-action="reset" class="danger">Reset match</button>
+            </div>
+        </div>
+
+        <div class="cp-group">
+            <div class="cp-label">Status</div>
+            <div class="cp-status" id="cp-status">Waiting for tosu…</div>
+        </div>
+
+        <div class="cp-help">
+            <b>M / G / W</b>: mappool / gameplay / winner scene<br>
+            <b>Lineup card / gameplay team block</b> left / right click: score +1 / -1<br>
+            <b>1 / 2</b>: red / blue picking<br>
+            <b>Q / E</b> or <b>team name</b> click: red / blue banning<br>
+            <b>Esc</b>: cancel the current phase<br>
+            <b>Left click</b> a pool map: pick / ban it for the active phase<br>
+            <b>Right click</b> a pool map: undo its pick or ban
+        </div>
+    </aside>
+
+    <!-- Same cache-busting as the stylesheets; written in order so
+         core.js -> gameplay.js -> mappool.js still run in sequence. -->
+    <script>
+        for (const src of ['../shared/core.js', 'gameplay.js', 'mappool.js']) {
+            document.write(`<script src="${src}?v=${window.FFS_VERSION}"><\/script>`);
+        }
+    </script>
+</body>
+</html>

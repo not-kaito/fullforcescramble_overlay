@@ -1,0 +1,1395 @@
+/* ==========================================================
+   MAPPOOL SCENE
+   Fixed 1920x1080 stage. Geometry is absolute so every card
+   lands in the same place regardless of content.
+   ----------------------------------------------------------
+   LAYOUT VARIABLES -- tweak these to move things around.
+   ========================================================== */
+:root {
+    --side-margin: 24px;
+
+    --row-height: 304px;
+    --row-red-top: 134px;
+    --row-blue-top: 458px;
+    --row-gap: 14px;          /* space between cards in a row */
+
+    /* Z-piece layout: red row starts at the left margin, blue row
+       ends at the right margin, and each lineup sticks out past the
+       other row. Blue's last box starts under red's ban card, and
+       red's last box ends above blue's ban card. That holds while
+       2 x lineup + ban + 6 picks + 8 gaps = 1920 - 2 x margin. */
+    --lineup-width: 200px;
+    --ban-width: 280px;
+    --pick-width: 180px;
+
+    --footer-top: 836px;
+    --footer-height: 204px;
+    --chat-width: 806px;
+
+    /* Mappool grid cards (same proportions as the showcase
+       history cards) */
+    --pool-card-w: 54px;
+    --pool-card-h: 95px;
+    --pool-gap: 10px;         /* between cards of the same mod */
+    --pool-row-gap: 12px;     /* between the two rows */
+    --pool-mod-gap: 22px;     /* between mod groups */
+
+    /* Big score: nudge down/up so the digit sits exactly on the
+       card's bottom edge (positive = lower). */
+    --score-size: 128px;
+    --score-nudge: 0.165em;
+
+    --stage-width: 1920px;
+    --panel-width: 480px;
+}
+
+html, body {
+    width: calc(var(--stage-width) + var(--panel-width));
+}
+
+#stage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--stage-width);
+    height: 1080px;
+    overflow: hidden;
+}
+
+.scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+
+/* Mappool background loop -- first child, so everything else
+   paints on top of it */
+#bg-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.scene.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.35s ease;
+}
+
+.card-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text-dim-strong);
+}
+
+/* ==========================================================
+   HEADER
+   ========================================================== */
+#header {
+    position: absolute;
+    top: 14px;
+    left: var(--side-margin);
+    right: var(--side-margin);
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.team-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 640px;
+    cursor: pointer;
+}
+
+.team-header.blue {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+/* 1x1, rounded, fixed size no matter the source image size */
+.team-icon {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
+    background: var(--row-bg);
+}
+
+.team-meta {
+    min-width: 0;
+}
+
+.team-name {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.team-acronym {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    opacity: 0.45;
+    margin-top: 2px;
+}
+
+#branding {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.brand-sub {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    opacity: 0.5;
+}
+
+.brand-main {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+#round-tag {
+    margin-top: 2px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+    font-size: 13px;
+    letter-spacing: 1px;
+    line-height: 18px;
+    text-transform: uppercase;
+}
+
+/* ==========================================================
+   TEAM ROWS
+   Red: lineup on the left, picks fill left -> right.
+   Blue: row-reverse, lineup on the right, picks fill right -> left.
+   ========================================================== */
+.team-row {
+    position: absolute;
+    height: var(--row-height);
+    display: flex;
+    gap: var(--row-gap);
+}
+
+#row-red {
+    --row-color: var(--team-red);
+    top: var(--row-red-top);
+    left: var(--side-margin);
+}
+
+#row-blue {
+    --row-color: var(--team-blue);
+    top: var(--row-blue-top);
+    right: var(--side-margin);
+    flex-direction: row-reverse;
+}
+
+.pick-slots {
+    display: flex;
+    gap: var(--row-gap);
+}
+
+#row-blue .pick-slots {
+    flex-direction: row-reverse;
+}
+
+/* -------------------- Lineup + score card -------------------- */
+.lineup-card {
+    position: relative;
+    width: var(--lineup-width);
+    height: 100%;
+    background: var(--row-bg);
+    border-radius: 4px;
+    border-top: 4px solid var(--team-red);
+    padding: 12px 12px 0;
+    overflow: hidden;   /* clips the score digit to the bottom edge */
+    cursor: pointer;    /* left click +1, right click -1 */
+    --team-color: var(--team-red);
+}
+
+.lineup-card.blue {
+    border-top-color: var(--team-blue);
+    --team-color: var(--team-blue);
+}
+
+/* Point awarded after a map: card flashes in the team color and
+   the number pops */
+.lineup-card.point-gain {
+    animation: point-glow 1.6s ease-out;
+}
+
+.lineup-card.point-gain .score {
+    animation: point-pop 0.7s cubic-bezier(.2, 1.6, .4, 1);
+    color: var(--team-color);
+    transition: color 0.9s ease 0.7s;
+}
+
+@keyframes point-glow {
+    0%   { box-shadow: inset 0 0 0 0 transparent; background: var(--team-color); }
+    25%  { background: var(--row-bg); box-shadow: inset 0 0 40px 6px var(--team-color); }
+    100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+
+@keyframes point-pop {
+    0%   { transform: translateY(var(--score-nudge)) scale(1.6); }
+    100% { transform: translateY(var(--score-nudge)) scale(1); }
+}
+
+.lineup-list {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.lineup-player {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.lineup-player span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lineup-flag {
+    width: 21px;
+    height: 14px;
+    object-fit: cover;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.score {
+    position: absolute;
+    right: 10px;
+    bottom: 0;
+    transform-origin: right bottom;
+    font-family: 'Product Sans', sans-serif;
+    font-weight: 900;
+    font-size: var(--score-size);
+    line-height: 1;
+    transform: translateY(var(--score-nudge));
+}
+
+/* -------------------- Ban card -------------------- */
+.ban-card {
+    width: var(--ban-width);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 59, 59, 0.12);
+}
+
+.ban-slot {
+    position: relative;
+    flex: 1;
+    background: var(--row-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.ban-slot .slot-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: grayscale(1) brightness(0.55);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ban-slot.filled .slot-bg {
+    opacity: 1;
+}
+
+.ban-slot .ban-label {
+    position: relative;
+    z-index: 2;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: rgba(255, 90, 90, 0.35);
+}
+
+.ban-slot.filled .ban-label {
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 900;
+    font-size: 30px;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* 2nd ban box in rounds that only get one ban */
+.ban-slot.locked {
+    background: var(--locked-bg);
+}
+
+.ban-slot.locked .ban-label {
+    color: rgba(255, 255, 255, 0.14);
+}
+
+/* Waiting for the streamer to click the banned map */
+.ban-slot.banning {
+    background: #0b0d12;
+    animation: ban-pulse 2.4s ease-in-out infinite;
+}
+
+.ban-slot.banning .ban-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+@keyframes ban-pulse {
+    0%, 100% { box-shadow: inset 0 0 6px 1px rgba(255, 59, 59, 0.25); }
+    50%      { box-shadow: inset 0 0 26px 6px rgba(255, 59, 59, 0.75); }
+}
+
+/* -------------------- Pick slots -------------------- */
+.pick-slot {
+    position: relative;
+    width: var(--pick-width);
+    height: 100%;
+    background: var(--row-bg);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 8px;
+}
+
+.pick-slot .slot-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 98%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 98%);
+    opacity: 0;
+}
+
+.pick-slot .slot-status {
+    position: relative;
+    z-index: 2;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.22);
+}
+
+.pick-slot .slot-code {
+    position: relative;
+    z-index: 2;
+    display: none;
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    line-height: 1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0, 0, 0, 0.9);
+}
+
+/* WON / LOST stamp, centered on the card, from the picking
+   team's point of view (set in renderPicks). */
+.pick-slot .slot-result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    display: none;
+    transform: translate(-50%, -50%);
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 900;
+    font-size: 34px;
+    letter-spacing: 1px;
+    line-height: 1;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.pick-slot.result-won .slot-result,
+.pick-slot.result-lost .slot-result {
+    display: block;
+}
+
+.pick-slot.result-won .slot-result {
+    background: var(--row-color);
+    color: #11141c;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.pick-slot.result-lost .slot-result {
+    background: rgba(9, 11, 16, 0.85);
+    color: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pick-slot.result-lost .slot-bg {
+    filter: grayscale(0.7) brightness(0.6);
+}
+
+/* Played when a result lands live (gameplay.js) */
+.pick-slot.result-stamp .slot-result {
+    animation: result-stamp 0.55s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+
+@keyframes result-stamp {
+    from { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+    to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.pick-slot.filled .slot-bg {
+    opacity: 1;
+}
+
+.pick-slot.filled .slot-code {
+    display: block;
+}
+
+.pick-slot.filled .slot-status {
+    display: none;
+}
+
+/* Hook for a future reveal animation (see revealPickSlot) */
+.pick-slot.revealing .slot-bg,
+.pick-slot.revealing .slot-code {
+    animation: slot-reveal 0.5s ease both;
+}
+
+@keyframes slot-reveal {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.pick-slot.locked {
+    background: var(--locked-bg);
+}
+
+.pick-slot.locked .slot-status {
+    color: rgba(255, 255, 255, 0.14);
+}
+
+/* Next open slot for the team that picks next */
+.pick-slot.picking {
+    animation: pick-pulse-red 2s ease-in-out infinite;
+}
+
+#row-blue .pick-slot.picking {
+    animation-name: pick-pulse-blue;
+}
+
+.pick-slot.picking .slot-status {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0;
+    color: var(--team-red);
+    padding-bottom: 6px;
+}
+
+#row-blue .pick-slot.picking .slot-status {
+    color: var(--team-blue);
+}
+
+@keyframes pick-pulse-red {
+    0%, 100% { box-shadow: inset 0 0 4px 1px rgba(255, 125, 125, 0.2); }
+    50%      { box-shadow: inset 0 0 24px 4px rgba(255, 125, 125, 0.7); }
+}
+
+@keyframes pick-pulse-blue {
+    0%, 100% { box-shadow: inset 0 0 4px 1px rgba(195, 177, 255, 0.2); }
+    50%      { box-shadow: inset 0 0 24px 4px rgba(195, 177, 255, 0.7); }
+}
+
+/* ==========================================================
+   PICK BANNER
+   Spans the full stage width over the picking team's row.
+   ========================================================== */
+#pick-banner {
+    position: absolute;
+    left: var(--side-margin);
+    right: var(--side-margin);
+    height: var(--row-height);
+    top: var(--row-red-top);
+    display: flex;
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 20;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+    --team-color: var(--team-red);
+}
+
+#pick-banner.on-blue {
+    top: var(--row-blue-top);
+    --team-color: var(--team-blue);
+}
+
+#pick-banner.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.12s ease;
+}
+
+#pick-banner.show .banner-body {
+    animation: banner-wipe 0.45s cubic-bezier(.2, .8, .2, 1) both;
+}
+
+#pick-banner.show .banner-flash {
+    animation: banner-flash 0.9s ease-out both;
+}
+
+@keyframes banner-wipe {
+    from { clip-path: inset(0 100% 0 0); }
+    to   { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes banner-flash {
+    0%   { opacity: 0.85; }
+    100% { opacity: 0; }
+}
+
+.banner-team {
+    width: var(--lineup-width);
+    flex-shrink: 0;
+    background: var(--team-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+#banner-team-icon {
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+}
+
+#banner-team-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 22px;
+    color: #11141c;
+    letter-spacing: 1px;
+}
+
+.banner-body {
+    position: relative;
+    flex: 1;
+    background: var(--row-bg);
+    overflow: hidden;
+}
+
+#banner-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.45;
+}
+
+.banner-content {
+    position: absolute;
+    inset: 0;
+    padding: 22px 28px 18px;
+    background: linear-gradient(to right, rgba(17, 20, 28, 0.55), rgba(17, 20, 28, 0.1) 60%, rgba(17, 20, 28, 0.35));
+}
+
+.banner-meta {
+    max-width: calc(100% - 260px);
+}
+
+#banner-title {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 42px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+#banner-artist {
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 500;
+    font-size: 36px;
+    line-height: 1.15;
+    opacity: 0.85;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+#banner-mapper {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 28px;
+    opacity: 0.75;
+    margin-top: 4px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.banner-right {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    text-align: right;
+}
+
+#banner-sr {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 60px;
+    color: #fac745;
+    line-height: 1.05;
+}
+
+#banner-code {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 1.1;
+    margin-top: 4px;
+}
+
+.banner-stats {
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    bottom: 16px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    gap: 34px;
+}
+
+.banner-stats .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.banner-stats .lbl {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+}
+
+.banner-stats .val {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 17px;
+}
+
+.banner-flash {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ==========================================================
+   MARQUEE (fillMarquee in mappool.js)
+   The track holds the same set twice and slides right by one
+   set per loop. Edges fade out.
+   ========================================================== */
+.marquee {
+    overflow: hidden;
+    white-space: nowrap;
+    mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+}
+
+.marquee-track {
+    display: inline-flex;
+    animation: marquee-right linear infinite;
+}
+
+.marquee-set {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+@keyframes marquee-right {
+    from { transform: translateX(-50%); }
+    to   { transform: translateX(0); }
+}
+
+.marquee-unit,
+.marquee-player {
+    display: inline-flex;
+    align-items: center;
+    white-space: pre;
+}
+
+.marquee-player {
+    gap: 10px;
+}
+
+.marquee-flag {
+    width: 30px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 3px;
+}
+
+/* ==========================================================
+   TIEBREAKER CARD
+   Spans both team rows. .show runs the yellow intro (text shoots
+   up and brakes hard into the center); .revealed (2s later)
+   crossfades to the map.
+   ========================================================== */
+#tb-banner {
+    position: absolute;
+    left: var(--side-margin);
+    right: var(--side-margin);
+    top: var(--row-red-top);
+    height: calc(var(--row-blue-top) + var(--row-height) - var(--row-red-top));
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 21;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+}
+
+#tb-banner.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.12s ease;
+}
+
+.tb-intro {
+    position: absolute;
+    inset: 0;
+    background: var(--mod-tb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.tb-intro-text {
+    font-family: 'Product Sans', sans-serif;
+    font-weight: 900;
+    font-size: 210px;
+    line-height: 1;
+    letter-spacing: -4px;
+    color: #11141c;
+    white-space: nowrap;
+}
+
+#tb-banner.show .tb-intro {
+    animation: tb-intro-in 0.35s ease-out both;
+}
+
+/* Fast at first, then a drastic slow-down into the center */
+#tb-banner.show .tb-intro-text {
+    animation: tb-rise 1.6s cubic-bezier(0.05, 0.95, 0.05, 1) both;
+}
+
+@keyframes tb-intro-in {
+    from { clip-path: inset(50% 0 50% 0); }
+    to   { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes tb-rise {
+    from { transform: translateY(420px); opacity: 0; }
+    15%  { opacity: 1; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+.tb-reveal {
+    position: absolute;
+    inset: 0;
+    background: var(--row-bg);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#tb-banner.revealed .tb-reveal {
+    opacity: 1;
+}
+
+#tb-banner.revealed .tb-reveal .banner-flash {
+    animation: banner-flash 0.9s ease-out both;
+}
+
+#tb-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.55;
+}
+
+/* Darker in the middle so the centered text always reads */
+#tb-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(17, 20, 28, 0.75) 0%, rgba(17, 20, 28, 0.35) 70%);
+}
+
+.tb-content {
+    position: absolute;
+    inset: 0;
+    padding: 0 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* Map lines shoot up and brake into place like the intro text, a
+   bit softer (shorter travel, quicker). The TIEBREAKER label stays
+   put. */
+#tb-banner.revealed .tb-content > :not(.tb-label) {
+    animation: tb-line-rise 1.2s cubic-bezier(0.05, 0.95, 0.1, 1) both;
+}
+
+#tb-banner.revealed .tb-content > :nth-child(3) { animation-delay: 0.1s; }
+#tb-banner.revealed .tb-content > :nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes tb-line-rise {
+    from { transform: translateY(260px); opacity: 0; }
+    15%  { opacity: 1; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Small label, like the TIEBREAKER tag in the gameplay scene */
+/* Small "TIEBREAKER TIEBREAKER ..." strip scrolling right across
+   the whole card for as long as it's up */
+.tb-label {
+    align-self: stretch;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 8px;
+    color: var(--mod-tb);
+    margin: 0 -80px 18px;      /* run edge to edge past the content padding */
+}
+
+.tb-label .marquee-word {
+    padding-right: 48px;
+}
+
+#tb-title {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 64px;
+    line-height: 1.15;
+    max-width: 100%;
+}
+
+#tb-diff {
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 500;
+    font-size: 42px;
+    margin-top: 10px;
+    opacity: 0.9;
+}
+
+#tb-mapper {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 32px;
+    margin-top: 8px;
+    opacity: 0.8;
+}
+
+/* ==========================================================
+   WINNER SCENE
+   Background video only at first; .revealed (2s later, from
+   gameplay.js) brings in the winning team. .red / .blue set the
+   team color.
+   ========================================================== */
+#winner-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#scene-winner {
+    --win-color: #ffffff;
+    --win-glow: rgba(255, 255, 255, 0.2);
+}
+
+/* Glow = team color at low alpha (plain rgba so older OBS
+   browser engines render it too) */
+#scene-winner.red  { --win-color: var(--team-red);  --win-glow: rgba(255, 125, 125, 0.22); }
+#scene-winner.blue { --win-color: var(--team-blue); --win-glow: rgba(195, 177, 255, 0.22); }
+
+.winner-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    opacity: 0;
+    /* Soft team-colored glow behind everything */
+    background: radial-gradient(ellipse at center, var(--win-glow) 0%, rgba(9, 11, 16, 0.75) 60%);
+    transition: opacity 0.6s ease;
+}
+
+#scene-winner.revealed .winner-content {
+    opacity: 1;
+}
+
+#scene-winner.revealed .winner-content > * {
+    animation: tb-line-rise 1.3s cubic-bezier(0.05, 0.95, 0.1, 1) both;
+}
+
+#scene-winner.revealed .winner-content > :nth-child(2) { animation-delay: 0.08s; }
+#scene-winner.revealed .winner-content > :nth-child(3) { animation-delay: 0.16s; }
+#scene-winner.revealed .winner-content > :nth-child(4) { animation-delay: 0.24s; }
+#scene-winner.revealed .winner-content > :nth-child(5) { animation-delay: 0.32s; }
+#scene-winner.revealed .winner-content > :nth-child(6) { animation-delay: 0.4s; }
+
+.winner-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: 10px;
+    color: var(--win-color);
+    margin-bottom: 28px;
+}
+
+/* Same 1x1 rounded treatment as the header icons, just bigger */
+#winner-icon {
+    width: 240px;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: 0 0 0 4px var(--win-color), 0 0 60px var(--win-glow), 0 0 120px var(--win-glow);
+    background: var(--row-bg);
+}
+
+#winner-name {
+    margin-top: 40px;
+    max-width: 1600px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 84px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: var(--win-color);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+    overflow-wrap: anywhere;
+}
+
+.winner-bar {
+    width: 220px;
+    height: 6px;
+    margin-top: 26px;
+    border-radius: 3px;
+    background: var(--win-color);
+}
+
+.winner-roster {
+    width: 1400px;
+    max-width: 100%;
+    margin-top: 34px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+#winner-score {
+    margin-top: 22px;
+    font-family: 'Product Sans', sans-serif;
+    font-weight: 900;
+    font-size: 64px;
+    color: #ffffff;
+}
+
+/* ==========================================================
+   FOOTER: CHAT + MAPPOOL GRID
+   ========================================================== */
+#footer {
+    position: absolute;
+    top: var(--footer-top);
+    left: var(--side-margin);
+    right: var(--side-margin);
+    height: var(--footer-height);
+    display: flex;
+    gap: 24px;
+}
+
+#chat-card {
+    width: var(--chat-width);
+    height: 100%;
+    background: var(--row-bg);
+    border-radius: 4px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Newest line sits at the bottom; older lines are pushed up and
+   cropped (with a soft fade) at the top of the box. */
+/* Used by both the mappool and gameplay chat boxes */
+.chat-log {
+    flex: 1;
+    min-height: 0;
+    margin-top: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,1) 22px);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,1) 22px);
+}
+
+.chat-msg {
+    display: flex;
+    gap: 8px;
+    font-size: 15px;
+    line-height: 1.35;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+/* Grows from 0 height so the lines above slide up smoothly */
+.chat-msg.enter {
+    animation: chat-enter 0.3s ease-out both;
+    overflow: hidden;
+}
+
+@keyframes chat-enter {
+    from { max-height: 0; opacity: 0; }
+    to   { max-height: 80px; opacity: 1; }
+}
+
+.chat-time {
+    font-family: 'Share Tech', sans-serif;
+    color: var(--text-dim);
+    flex-shrink: 0;
+}
+
+.chat-name {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-msg.left .chat-name  { color: var(--team-red); }
+.chat-msg.right .chat-name { color: var(--team-blue); }
+.chat-msg.bot .chat-name   { color: #fcbe38; }
+
+.chat-text {
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 400;
+    overflow-wrap: anywhere;
+}
+
+/* -------------------- Mappool grid -------------------- */
+#pool-grid {
+    display: flex;
+    gap: var(--pool-mod-gap);
+    align-items: flex-start;
+}
+
+.pool-mod {
+    display: flex;
+    gap: var(--pool-gap);
+}
+
+.pool-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--pool-row-gap);
+}
+
+/* Card design from the showcase history shelf */
+.pool-card {
+    position: relative;
+    width: var(--pool-card-w);
+    height: var(--pool-card-h);
+    background-color: var(--row-bg);
+    border: 1px solid var(--mod-color, #ffffff);
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 1px;
+    cursor: pointer;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.pool-card .pool-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 99%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 99%);
+}
+
+.pool-card .pool-code {
+    position: relative;
+    z-index: 2;
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--mod-color, #ffffff);
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0, 0, 0, 0.9);
+}
+
+/* The tiebreaker can't be picked or banned */
+.pool-card.tiebreaker {
+    cursor: default;
+}
+
+/* Banned: grayscale, thick bold red outline, red text */
+.pool-card.banned {
+    border: 3px solid var(--ban-red);
+}
+
+.pool-card.banned .pool-bg {
+    filter: grayscale(1) brightness(0.45);
+}
+
+.pool-card.banned .pool-code {
+    color: var(--ban-red);
+}
+
+/* Picked: outlined in the picking team's color and dimmed */
+.pool-card.picked-red,
+.pool-card.picked-blue,
+.pool-card.picked-tb {
+    border-width: 3px;
+}
+
+.pool-card.picked-red  { border-color: var(--team-red); }
+.pool-card.picked-blue { border-color: var(--team-blue); }
+.pool-card.picked-tb   { border-color: var(--mod-tb); }
+
+.pool-card.picked-red .pool-bg,
+.pool-card.picked-blue .pool-bg,
+.pool-card.picked-tb .pool-bg {
+    filter: brightness(0.45);
+}
+
+/* ==========================================================
+   CONTROL PANEL (off-stage, cropped out in OBS)
+   ========================================================== */
+#control-panel {
+    position: absolute;
+    top: 0;
+    left: var(--stage-width);
+    width: var(--panel-width);
+    height: 1080px;
+    background: #0d0f15;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 24px 26px;
+    font-family: 'Space Mono', monospace;
+    font-size: 17px;
+    overflow-y: auto;
+}
+
+#control-panel h2 {
+    margin: 0 0 20px;
+    font-size: 24px;
+}
+
+.cp-group {
+    margin-bottom: 22px;
+}
+
+.cp-label {
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim-strong);
+    margin-bottom: 8px;
+}
+
+.cp-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cp-buttons + .cp-buttons {
+    margin-top: 8px;
+}
+
+#control-panel input {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    color: #ffffff;
+    background: #1d212b;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-left-width: 4px;
+    border-radius: 4px;
+    padding: 7px 10px;
+    outline: none;
+}
+
+#control-panel input.red  { border-left-color: var(--team-red); }
+#control-panel input.blue { border-left-color: var(--team-blue); }
+#control-panel input:focus { border-color: rgba(255, 255, 255, 0.4); }
+
+#control-panel button {
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #1d212b;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    padding: 8px 13px;
+    cursor: pointer;
+}
+
+#control-panel button:hover {
+    background: #272c38;
+}
+
+#control-panel button.red  { border-color: var(--team-red); }
+#control-panel button.blue { border-color: var(--team-blue); }
+#control-panel button.danger { border-color: var(--ban-red); color: var(--ban-red); }
+#control-panel button.active { background: #3a4152; }
+
+#control-panel kbd {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 14px;
+    opacity: 0.6;
+    margin-left: 4px;
+}
+
+.cp-status {
+    margin-top: 6px;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: pre-line;
+}
+
+/* Manual rosters drop-down */
+#cp-manual {
+    margin-top: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    padding: 6px 10px 10px;
+}
+
+#cp-manual summary {
+    cursor: pointer;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim-strong);
+    padding: 4px 0;
+}
+
+#cp-manual[open] summary {
+    margin-bottom: 8px;
+}
+
+.cp-roster {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+}
+
+.cp-roster th {
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    padding: 0 4px 4px;
+    color: var(--text-dim-strong);
+}
+
+.cp-roster th.red  { color: var(--team-red); }
+.cp-roster th.blue { color: var(--team-blue); }
+
+.cp-roster td {
+    padding: 2px 4px;
+}
+
+.cp-roster td:first-child {
+    width: 18px;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-align: right;
+}
+
+#control-panel .cp-roster input {
+    margin: 0;
+    padding: 4px 8px;
+    font-size: 14px;
+}
+
+.cp-help {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-dim-strong);
+}
+
+.cp-help b {
+    color: rgba(255, 255, 255, 0.8);
+}

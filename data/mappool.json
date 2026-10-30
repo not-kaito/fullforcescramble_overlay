@@ -1,0 +1,256 @@
+{
+    "round": "round of 32",
+    "statsIncludeMods": true,
+    "pool": [
+        {
+            "mod": "NM",
+            "maps": [4734878, 2081848, 5964821, 5589236, 4428385]
+        },
+        {
+            "mod": "HD",
+            "maps": [2665781, 4508946]
+        },
+        {
+            "mod": "HR",
+            "maps": [3954132, 4970802]
+        },
+        {
+            "mod": "DT",
+            "maps": [4495561, 2593242, 103475]
+        },
+        {
+            "mod": "FM",
+            "maps": [5430576, 3657590, 4282951]
+        },
+        {
+            "mod": "TB",
+            "maps": [4953761]
+        }
+    ],
+    "beatmaps": {
+        "4734878": {
+            "artist": "Grupo Alegria",
+            "title": "Mujeres y Cerveza (Cut Ver.)",
+            "difficulty": "Experto pa' la Piscola",
+            "mapper": "TheShadowOfDark",
+            "setId": 2230961,
+            "cover": "https://assets.ppy.sh/beatmaps/2230961/covers/fullsize.jpg",
+            "sr": 5.67,
+            "cs": 4,
+            "ar": 9.2,
+            "od": 9,
+            "bpm": 118,
+            "length": 120
+        },
+        "2081848": {
+            "artist": "Plutian",
+            "title": "Until the Blue Moon Rises",
+            "difficulty": "Special",
+            "mapper": "ktgster",
+            "setId": 995205,
+            "cover": "https://assets.ppy.sh/beatmaps/995205/covers/fullsize.jpg",
+            "sr": 4.87,
+            "cs": 7,
+            "ar": 0,
+            "od": 7,
+            "bpm": 138,
+            "length": 143
+        },
+        "5964821": {
+            "artist": "Street",
+            "title": "Hestia",
+            "difficulty": "faxaxaxa's Expert (FFS edit)",
+            "mapper": "faxaxaxa*",
+            "setId": 2643328,
+            "cover": "https://assets.ppy.sh/beatmaps/2643328/covers/fullsize.jpg",
+            "sr": 5.68,
+            "cs": 4,
+            "ar": 9.2,
+            "od": 8.2,
+            "bpm": 190,
+            "length": 125
+        },
+        "5589236": {
+            "artist": "yax03",
+            "title": "down",
+            "difficulty": "noob...",
+            "mapper": "aspen",
+            "setId": 2419109,
+            "cover": "https://assets.ppy.sh/beatmaps/2419109/covers/fullsize.jpg",
+            "sr": 5.84,
+            "cs": 4,
+            "ar": 9.1,
+            "od": 8,
+            "bpm": 172,
+            "length": 315
+        },
+        "4428385": {
+            "artist": "BLANKFIELD",
+            "title": "Entanglement",
+            "difficulty": "Astronic's Extra",
+            "mapper": "-Cirno-",
+            "setId": 2081070,
+            "cover": "https://assets.ppy.sh/beatmaps/2081070/covers/fullsize.jpg",
+            "sr": 5.61,
+            "cs": 3.8,
+            "ar": 9.5,
+            "od": 9,
+            "bpm": 250,
+            "length": 176
+        },
+        "2665781": {
+            "artist": "Ricky Martin",
+            "title": "Livin' La Vida Loca",
+            "difficulty": "Kudosu & Agatsu's Extra",
+            "mapper": "schoolboy",
+            "setId": 894111,
+            "cover": "https://assets.ppy.sh/beatmaps/894111/covers/fullsize.jpg",
+            "sr": 5.9,
+            "cs": 4.2,
+            "ar": 9.2,
+            "od": 8.6,
+            "bpm": 178,
+            "length": 240
+        },
+        "4508946": {
+            "artist": "Polyphia",
+            "title": "The Audacity (feat. Anomalie)",
+            "difficulty": "Insane",
+            "mapper": "Mir",
+            "setId": 1995091,
+            "cover": "https://assets.ppy.sh/beatmaps/1995091/covers/fullsize.jpg",
+            "sr": 5.48,
+            "cs": 4,
+            "ar": 9,
+            "od": 8,
+            "bpm": 160,
+            "length": 132
+        },
+        "3954132": {
+            "artist": "M2U",
+            "title": "Masquerade",
+            "difficulty": "Insane",
+            "mapper": "LeCandy",
+            "setId": 1756875,
+            "cover": "https://assets.ppy.sh/beatmaps/1756875/covers/fullsize.jpg",
+            "sr": 5.27,
+            "cs": 5.7,
+            "ar": 10,
+            "od": 10,
+            "bpm": 128,
+            "length": 140
+        },
+        "4970802": {
+            "artist": "Gram",
+            "title": "Nibelungen",
+            "difficulty": "End",
+            "mapper": "verticaldude",
+            "setId": 2320410,
+            "cover": "https://assets.ppy.sh/beatmaps/2320410/covers/fullsize.jpg",
+            "sr": 5.68,
+            "cs": 5.2,
+            "ar": 10,
+            "od": 10,
+            "bpm": 222,
+            "length": 167
+        },
+        "4495561": {
+            "artist": "HOYO-MiX",
+            "title": "If I Can Stop One Heart From Breaking",
+            "difficulty": "Longing Dream",
+            "mapper": "Andrea",
+            "setId": 2136372,
+            "cover": "https://assets.ppy.sh/beatmaps/2136372/covers/fullsize.jpg",
+            "sr": 5.89,
+            "cs": 5,
+            "ar": 10,
+            "od": 9.4,
+            "bpm": 240,
+            "length": 129
+        },
+        "2593242": {
+            "artist": "DUSTCELL",
+            "title": "Anemone",
+            "difficulty": "Collab Hard",
+            "mapper": "Sparhten",
+            "setId": 1247651,
+            "cover": "https://assets.ppy.sh/beatmaps/1247651/covers/fullsize.jpg",
+            "sr": 5.61,
+            "cs": 3.5,
+            "ar": 9.7,
+            "od": 9.1,
+            "bpm": 204,
+            "length": 121
+        },
+        "103475": {
+            "artist": "Yuma Mizonokuchi",
+            "title": "akasha-simulater",
+            "difficulty": "Hard",
+            "mapper": "Shinxyn",
+            "setId": 31480,
+            "cover": "https://assets.ppy.sh/beatmaps/31480/covers/fullsize.jpg",
+            "sr": 5.24,
+            "cs": 4,
+            "ar": 9,
+            "od": 9.1,
+            "bpm": 233,
+            "length": 115
+        },
+        "5430576": {
+            "artist": "DJ SHARPNEL",
+            "title": "Mmmmmmm",
+            "difficulty": "itay's insane",
+            "mapper": "alden",
+            "setId": 2475283,
+            "cover": "https://assets.ppy.sh/beatmaps/2475283/covers/fullsize.jpg",
+            "sr": 5.47,
+            "cs": 4,
+            "ar": 8.7,
+            "od": 8,
+            "bpm": 193,
+            "length": 262
+        },
+        "3657590": {
+            "artist": "RAM",
+            "title": "Mertvetsy",
+            "difficulty": "Scuffed",
+            "mapper": "ajmeowsca",
+            "setId": 1785685,
+            "cover": "https://assets.ppy.sh/beatmaps/1785685/covers/fullsize.jpg",
+            "sr": 5.26,
+            "cs": 1,
+            "ar": 9.5,
+            "od": 8.3,
+            "bpm": 170,
+            "length": 169
+        },
+        "4282951": {
+            "artist": "ZUN",
+            "title": "Shigen no Beat ~ Pristine Beat",
+            "difficulty": "fooders' Lunatic",
+            "mapper": "nik",
+            "setId": 2021984,
+            "cover": "https://assets.ppy.sh/beatmaps/2021984/covers/fullsize.jpg",
+            "sr": 4.9,
+            "cs": 5,
+            "ar": 8,
+            "od": 7,
+            "bpm": 158,
+            "length": 158
+        },
+        "4953761": {
+            "artist": "San-Z",
+            "title": "Ballet Labyrinth - Day",
+            "difficulty": "Top Service",
+            "mapper": "Takusa_",
+            "setId": 2314755,
+            "cover": "https://assets.ppy.sh/beatmaps/2314755/covers/fullsize.jpg",
+            "sr": 5.87,
+            "cs": 4.5,
+            "ar": 9.4,
+            "od": 8.6,
+            "bpm": 172,
+            "length": 315
+        }
+    }
+}

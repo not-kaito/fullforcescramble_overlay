@@ -1,0 +1,9 @@
+{
+    "pickBannerSeconds": 8,
+    "hideMpCommands": false,
+    "autoPickOnSongChange": true,
+    "autoSwitchToGameplay": true,
+    "scoreBarMaxDiff": 1200000,
+    "switchToGameplayAfterPick": true,
+    "ezMultiplier": 2
+}

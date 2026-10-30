@@ -1,0 +1,392 @@
+/* ==========================================================
+   GAMEPLAY SCENE
+   Everything above the panel stays transparent so the spectated
+   clients show through from OBS. The panel sits flush with the
+   bottom of the 1920x1080 frame; the score bar runs along its
+   top edge.
+   ========================================================== */
+:root {
+    --gp-height: 240px;                       /* panel height */
+    --gp-top: calc(1080px - var(--gp-height)); /* flush with the bottom */
+    --gp-bar-height: 8px;
+    --gp-panel-bg: #0b0d12;
+    --gp-side-width: 420px;
+    --gp-row-top: 76px;           /* where the team blocks / center start */
+}
+
+#gp-panel {
+    position: absolute;
+    left: 0;
+    top: var(--gp-top);
+    width: 1920px;
+    height: var(--gp-height);
+    background: var(--gp-panel-bg);
+}
+
+/* -------------------- Score difference bar -------------------- */
+#gp-bar-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--gp-bar-height);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Both bars grow outward from the center line (widths set in JS) */
+#gp-bar-red,
+#gp-bar-blue {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 0;
+}
+
+#gp-bar-red {
+    right: 50%;
+    background: var(--team-red);
+}
+
+#gp-bar-blue {
+    left: 50%;
+    background: var(--team-blue);
+}
+
+/* -------------------- Live scores -------------------- */
+#gp-scores {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    width: 1920px;
+    height: 58px;
+}
+
+.gp-score {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 40px;
+    line-height: 48px;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.7);
+    will-change: transform;
+}
+
+.gp-score.red.leading  { color: var(--team-red); }
+.gp-score.blue.leading { color: var(--team-blue); }
+
+#gp-diff {
+    position: absolute;
+    top: 46px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech', sans-serif;
+    font-size: 15px;
+    letter-spacing: 1px;
+}
+
+#gp-diff.red  { color: var(--team-red); }
+#gp-diff.blue { color: var(--team-blue); }
+
+/* Scores + bars only while a map is being played */
+#gp-scores,
+#gp-bar-red,
+#gp-bar-blue,
+#gp-first-to {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+#scene-gameplay.scores-visible #gp-scores,
+#scene-gameplay.scores-visible #gp-bar-red,
+#scene-gameplay.scores-visible #gp-bar-blue,
+#scene-gameplay.scores-visible #gp-first-to {
+    opacity: 1;
+}
+
+/* -------------------- Team blocks -------------------- */
+.gp-team {
+    position: absolute;
+    top: var(--gp-row-top);
+    bottom: 12px;
+    width: var(--gp-side-width);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 18px;
+    background: var(--row-bg);
+    border-radius: 4px;
+    border-top: 4px solid var(--team-red);
+    overflow: hidden;
+    cursor: pointer;    /* left click +1, right click -1 */
+}
+
+.gp-team.red {
+    left: var(--side-margin);
+    --team-color: var(--team-red);
+}
+
+.gp-team.blue {
+    right: var(--side-margin);
+    border-top-color: var(--team-blue);
+    text-align: right;
+    --team-color: var(--team-blue);
+}
+
+.gp-team .team-icon {
+    width: 88px;
+    height: 88px;
+    border-radius: 10px;
+}
+
+.gp-team-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.gp-team-name {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1.15;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gp-team-acronym {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    opacity: 0.45;
+}
+
+.gp-pips {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.gp-team.blue .gp-pips {
+    justify-content: flex-end;
+}
+
+.pip {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 2px solid var(--team-color);
+    opacity: 0.6;
+}
+
+.pip.filled {
+    background: var(--team-color);
+    opacity: 1;
+}
+
+.gp-points {
+    font-family: 'Product Sans', sans-serif;
+    font-weight: 900;
+    font-size: 96px;
+    line-height: 1;
+    min-width: 58px;
+    text-align: center;
+}
+
+/* -------------------- Center: now playing + chat -------------------- */
+#gp-center {
+    position: absolute;
+    top: var(--gp-row-top);
+    bottom: 12px;
+    left: calc(var(--side-margin) + var(--gp-side-width) + 20px);
+    right: calc(var(--side-margin) + var(--gp-side-width) + 20px);
+}
+
+#gp-now-playing {
+    position: relative;
+    height: 66px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 20px;
+    background: var(--row-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#gp-np-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.4;
+    mask-image: linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0.2) 100%);
+    -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0.2) 100%);
+}
+
+#gp-np-code,
+.gp-np-meta,
+.gp-np-right {
+    position: relative;
+}
+
+/* Pool slot (NM1...) or a dash for maps outside the pool */
+#gp-np-code {
+    font-family: 'Google Sans', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    min-width: 74px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.gp-np-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.gp-np-line {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+
+#gp-np-tag {
+    flex-shrink: 0;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text-dim-strong);
+}
+
+#gp-np-tag.red  { color: var(--team-red); }
+#gp-np-tag.blue { color: var(--team-blue); }
+#gp-np-tag.tb   { color: var(--mod-tb); }
+
+#gp-np-title {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 21px;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+#gp-np-sub {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 15px;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gp-np-right {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+#gp-np-sr {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.2;
+    color: #fac745;
+}
+
+.gp-np-stats {
+    display: flex;
+    gap: 12px;
+    font-family: 'Share Tech', sans-serif;
+    font-size: 14px;
+    color: var(--text-dim);
+}
+
+.gp-np-stats b {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+#gp-chat {
+    position: absolute;
+    top: 74px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--row-bg);
+    border-radius: 4px;
+    padding: 4px 16px 6px;
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.4s ease;
+}
+
+/* Smaller label + lines so 2-3 messages fit */
+#gp-chat .card-label {
+    display: none;
+}
+
+#gp-chat .chat-log {
+    margin-top: 0;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,1) 10px);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0, rgba(0,0,0,1) 10px);
+}
+
+#gp-chat .chat-msg {
+    font-size: 15px;
+    line-height: 1.3;
+}
+
+/* Chat steps aside while scores are up */
+#scene-gameplay.scores-visible #gp-chat {
+    opacity: 0;
+}
+
+#gp-first-to {
+    position: absolute;
+    top: 74px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 4px;
+    color: var(--text-dim-strong);
+}
+
+/* -------------------- Point awarded (map end) -------------------- */
+/* The newly filled pip flares up in the team color, then settles
+   into the normal filled state. */
+.pip.pip-gain {
+    animation: pip-gain 1.5s ease-out;
+}
+
+@keyframes pip-gain {
+    0%   { transform: scale(1);   background: transparent;       box-shadow: 0 0 0 0 transparent; }
+    20%  { transform: scale(1.7); background: #ffffff;           box-shadow: 0 0 12px 5px var(--team-color), 0 0 26px 10px var(--team-color); }
+    55%  { transform: scale(1.2); background: var(--team-color); box-shadow: 0 0 8px 3px var(--team-color); }
+    100% { transform: scale(1);   background: var(--team-color); box-shadow: 0 0 0 0 transparent; }
+}
+
+/* The point number pops and glows, then returns to white */
+.gp-points.point-gain {
+    animation: gp-point-gain 1.5s cubic-bezier(.2, 1.4, .4, 1);
+}
+
+@keyframes gp-point-gain {
+    0%   { transform: scale(1);    color: #ffffff;           text-shadow: none; }
+    20%  { transform: scale(1.35); color: var(--team-color); text-shadow: 0 0 18px var(--team-color), 0 0 36px var(--team-color); }
+    60%  { transform: scale(1.05); color: var(--team-color); text-shadow: 0 0 10px var(--team-color); }
+    100% { transform: scale(1);    color: #ffffff;           text-shadow: none; }
+}

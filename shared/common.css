@@ -1,0 +1,95 @@
+/* ==========================================================
+   SHARED STYLES -- used by every scene (mappool now, gameplay
+   and others later). Fonts, color tokens, base reset.
+   ========================================================== */
+@font-face {
+    font-family: 'Google Sans';
+    src: url('../fonts/GoogleSans-VariableFont_GRAD,opsz,wght.ttf') format('truetype-variations');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Space Mono';
+    src: url('../fonts/SpaceMono-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Space Mono';
+    src: url('../fonts/SpaceMono-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Product Sans';
+    src: url('../fonts/ProductSans.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Share Tech';
+    src: url('../fonts/ShareTechMono-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+:root {
+    /* Mirrors MOD_COLORS in shared/core.js (same values as the
+       showcase overlay). If you change one, change the other. */
+    --mod-nm: #f1f7ff;
+    --mod-hd: #ebbc83;
+    --mod-hr: #ff7d7d;
+    --mod-dt: #d1b7ff;
+    --mod-fm: #dc96b4;
+    --mod-tb: #fcbe38;
+
+    /* Team colors. Blue team is lavender to match the reference. */
+    --team-red: #ff7d7d;
+    --team-blue: #c3b1ff;
+
+    /* Ban color -- used for the pool outline/text and the
+       "Loading..." pulse on a ban card. */
+    --ban-red: #ff3b3b;
+
+    --card-bg: #1d212b;
+    --row-bg: #11141c;
+    --locked-bg: #090b10;
+    --text-dim: rgba(255, 255, 255, 0.35);
+    --text-dim-strong: rgba(255, 255, 255, 0.55);
+
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 1080px;
+    background-color: transparent;
+    font-family: 'Space Mono', monospace;
+    color: #ffffff;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Cycling "." -> ".." -> "..." used by "Loading..." and "Picking...".
+   Add class="dots" to any inline element. */
+.dots::after {
+    content: '.';
+    display: inline-block;
+    width: 3ch;
+    text-align: left;
+    animation: dots-cycle 1.2s steps(1, end) infinite;
+}
+
+@keyframes dots-cycle {
+    0%      { content: '.'; }
+    33.33%  { content: '..'; }
+    66.66%  { content: '...'; }
+}
