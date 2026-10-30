@@ -149,12 +149,20 @@ html, body {
     margin-top: 2px;
 }
 
+/* Lives directly in #stage (not in a scene), above both the
+   mappool and gameplay scenes; fades out for the winner screen */
 #branding {
     position: absolute;
     left: 50%;
-    top: 0;
+    top: 14px;            /* same spot as the header row */
     transform: translateX(-50%);
     text-align: center;
+    z-index: 30;
+    transition: opacity 0.35s ease;
+}
+
+#stage.on-winner #branding {
+    opacity: 0;
 }
 
 .brand-sub {

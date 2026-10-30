@@ -54,6 +54,7 @@ const Gameplay = (() => {
         if (name !== 'mappool') hideBanner();
         if (name === 'winner') startWinnerScreen();
         else stopWinnerScreen();
+        el('stage').classList.toggle('on-winner', name === 'winner');
         FFS.storage.set(SCENE_KEY, name);
         renderPanel();
     }
