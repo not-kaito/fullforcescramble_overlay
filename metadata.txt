@@ -1,0 +1,7 @@
+Usecase: obs-overlay
+Name: FFS overlay
+Version: 1.02
+Author: notkaito
+CompatibleWith: tosu
+Resolution: 2400x1080
+authorLinks: https://github.com/not-kaito
