@@ -1,5 +1,5 @@
 {
-    "pickBannerSeconds": 8,
+    "pickBannerSeconds": 10,
     "hideMpCommands": false,
     "autoPickOnSongChange": true,
     "autoSwitchToGameplay": true,

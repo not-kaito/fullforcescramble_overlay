@@ -284,7 +284,8 @@ const Gameplay = (() => {
         renderPanel();
         if (!pending) return;
 
-        // Let the scene fade in before the point animation plays
+        // Let the scene fade in (0.35 s), then hold half a second so the
+        // point animation doesn't get lost in the transition
         setTimeout(() => {
             const { winner, pickTeam, pickIndex } = pending;
             let next = null;
@@ -300,7 +301,7 @@ const Gameplay = (() => {
             setStatus(isTiebreakerScore()
                 ? `${winner.toUpperCase()} won the point · TIEBREAKER next`
                 : `${winner.toUpperCase()} won the point${next ? ` · ${next.toUpperCase()} picks next` : ''}`);
-        }, 450);
+        }, 350 + 500);
     }
 
     // The winner's lineup card flashes and its score pops; the
