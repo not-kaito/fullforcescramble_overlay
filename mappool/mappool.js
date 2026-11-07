@@ -29,6 +29,9 @@ const state = {
     score: { red: 0, blue: 0 },
     // Tiebreaker loaded (only allowed when tied one point from the win)
     tbPicked: false,
+    // Team that banned first. Bans always go A B B A (cut to A B in
+    // one-ban rounds), so this is all we need to know who's next.
+    banFirst: null,
     // Only one phase at a time: { type: 'pick' | 'ban', team } or null.
     // Not persisted -- a refresh always comes back idle.
     phase: null,
@@ -93,6 +96,7 @@ function loadState() {
     state.autoPick = saved.autoPick !== false;
     state.pickCounter = Number(saved.pickCounter) || 0;
     state.tbPicked = !!saved.tbPicked;
+    state.banFirst = TEAMS.includes(saved.banFirst) ? saved.banFirst : null;
     for (const team of TEAMS) {
         state.score[team] = Math.max(0, Number(saved.score?.[team]) || 0);
     }
@@ -119,6 +123,23 @@ function isTiebreakerScore() {
 
 const openPickCount = () => PICK_SLOTS_PER_TEAM - pool.rules.lockedSlots;
 
+const other = team => (team === 'red' ? 'blue' : 'red');
+
+// Who bans next in the A B B A order, from how many bans each team
+// already has (so undoing a ban just steps the order back). null
+// once every ban is in.
+function nextBanTeam() {
+    if (!state.banFirst) return null;
+    const a = state.banFirst;
+    const order = [a, other(a), other(a), a].slice(0, pool.rules.bans * 2);
+    const seen = { red: 0, blue: 0 };
+    for (const team of order) {
+        if (state.bans[team].length <= seen[team]) return team;
+        seen[team]++;
+    }
+    return null;
+}
+
 const isPhase = (type, team) => state.phase?.type === type && state.phase.team === team;
 
 function setStatus(message) {
@@ -137,7 +158,10 @@ function buildBoard() {
         for (let i = 0; i < BAN_SLOTS_PER_TEAM; i++) {
             const slot = document.createElement('div');
             slot.className = 'ban-slot';
-            slot.innerHTML = '<div class="slot-bg"></div><div class="ban-label"></div>';
+            slot.innerHTML =
+                '<div class="slot-bg"></div>' +
+                '<div class="ban-label"></div>' +
+                '<div class="ban-door"><span>BANNED</span></div>';
             banCard.appendChild(slot);
         }
 
@@ -261,7 +285,7 @@ function renderBans(team) {
             label.textContent = 'LOCKED';
         } else if (isBanning) {
             label.className = 'ban-label dots';
-            label.textContent = 'Loading';
+            label.textContent = 'Banning';
         } else {
             label.className = 'ban-label';
             label.textContent = 'EMPTY BAN';
@@ -346,6 +370,12 @@ function startPhase(type, team) {
         setStatus(`${team.toUpperCase()} has no empty ban slot. Right click a banned map to undo it.`);
         return;
     }
+    // The first ban of the match sets the A B B A order. Later
+    // manual starts (e.g. after Esc) keep it.
+    if (type === 'ban' && !TEAMS.some(t => state.bans[t].length)) {
+        state.banFirst = team;
+        saveState();
+    }
     if (type === 'pick' && state.picks[team].length >= openPickCount()) {
         setStatus(`${team.toUpperCase()} has no open pick boxes left.`);
         return;
@@ -366,10 +396,13 @@ function cancelPhase() {
 function banMap(slot) {
     const team = state.phase.team;
     state.bans[team].push(slot.id);
-    state.phase = null;
+    // Straight into the next ban in the A B B A order, if any is left
+    const next = nextBanTeam();
+    state.phase = next ? { type: 'ban', team: next } : null;
     saveState();
     render();
-    setStatus(`${team.toUpperCase()} banned ${slot.code}`);
+    slamBan(team, state.bans[team].length - 1);
+    setStatus(`${team.toUpperCase()} banned ${slot.code}${next ? ` · ${next.toUpperCase()} bans next` : ' · bans done'}`);
 }
 
 function pickMap(slot) {
@@ -469,11 +502,26 @@ function resetMatch() {
     state.score = { red: 0, blue: 0 };
     state.pickCounter = 0;
     state.tbPicked = false;
+    state.banFirst = null;
     state.phase = null;
     hideBanner();
     saveState();
     render();
     setStatus('Match reset');
+}
+
+// Red door slams down over the ban box (0.4 s), holds BANNED for
+// 1 s, then lifts (0.6 s) to show the filled ban underneath.
+const BAN_SLAM_MS = 2000;
+
+function slamBan(team, index) {
+    const el = $(`${team}-bans`).children[index];
+    if (!el) return;
+    clearTimeout(el._slamTimer);
+    el.classList.remove('slamming');
+    void el.offsetWidth;   // restart the CSS animations
+    el.classList.add('slamming');
+    el._slamTimer = setTimeout(() => el.classList.remove('slamming'), BAN_SLAM_MS);
 }
 
 // ----------------------------------------------------------
@@ -511,7 +559,11 @@ function showBanner(slot, side, { test = false } = {}) {
     $('banner-bg').style.backgroundImage = slot.cover ? `url('${slot.cover}')` : '';
     $('banner-title').textContent = map.title || `Beatmap ${slot.id}`;
     $('banner-artist').textContent = map.artist || '';
-    $('banner-mapper').textContent = map.mapper ? `mapped by ${map.mapper}` : '';
+    // "[Difficulty] - mapped by Mapper"
+    $('banner-mapper').textContent = [
+        map.difficulty ? `[${map.difficulty}]` : '',
+        map.mapper ? `mapped by ${map.mapper}` : '',
+    ].filter(Boolean).join(' - ');
     $('banner-sr').textContent = `${stats.sr.toFixed(2)}★`;
     const code = $('banner-code');
     code.textContent = slot.code;

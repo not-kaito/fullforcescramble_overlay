@@ -357,10 +357,10 @@ html, body {
 }
 
 .ban-slot.filled .ban-label {
-    font-family: 'Google Sans', sans-serif;
-    font-weight: 900;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
     font-size: 30px;
-    letter-spacing: 0.5px;
+    letter-spacing: -1px;
     color: #ffffff;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
@@ -390,6 +390,57 @@ html, body {
 @keyframes ban-pulse {
     0%, 100% { box-shadow: inset 0 0 6px 1px rgba(255, 59, 59, 0.25); }
     50%      { box-shadow: inset 0 0 26px 6px rgba(255, 59, 59, 0.75); }
+}
+
+/* Ban slam: a red door drops over the box (0.4 s), holds BANNED for
+   1 s, then lifts back up (0.6 s) to show the filled ban. 2 s total,
+   matches BAN_SLAM_MS in mappool.js. */
+.ban-door {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ban-red);
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+    transform: translateY(-105%);
+    pointer-events: none;
+}
+
+.ban-door span {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 40px;
+    letter-spacing: -1px;
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.ban-slot.slamming .ban-door {
+    animation: ban-door 2s both;
+}
+
+/* The filled ban stays hidden while the door is still coming down */
+.ban-slot.slamming .slot-bg,
+.ban-slot.slamming .ban-label {
+    animation: ban-under-door 0.4s steps(1, end) both;
+}
+
+@keyframes ban-door {
+    0%   { transform: translateY(-105%); animation-timing-function: cubic-bezier(.55, 0, 1, .45); }
+    20%  { transform: translateY(0); }
+    /* small bounce off the floor */
+    23%  { transform: translateY(-4%); animation-timing-function: ease-in; }
+    26%  { transform: translateY(0); }
+    70%  { transform: translateY(0); animation-timing-function: cubic-bezier(.6, 0, .3, 1); }
+    100% { transform: translateY(-105%); }
+}
+
+/* visibility, not opacity: the slot-bg's opacity transition would win */
+@keyframes ban-under-door {
+    from { visibility: hidden; }
+    to   { visibility: visible; }
 }
 
 /* -------------------- Pick slots -------------------- */
@@ -446,10 +497,10 @@ html, body {
     z-index: 3;
     display: none;
     transform: translate(-50%, -50%);
-    font-family: 'Google Sans', sans-serif;
-    font-weight: 900;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
     font-size: 34px;
-    letter-spacing: 1px;
+    letter-spacing: -1px;
     line-height: 1;
     padding: 8px 16px;
     border-radius: 4px;
@@ -680,6 +731,10 @@ html, body {
     font-size: 28px;
     opacity: 0.75;
     margin-top: 4px;
+    /* long difficulty names cut off instead of wrapping */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
@@ -725,7 +780,7 @@ html, body {
 
 .banner-stats .lbl {
     font-family: 'Share Tech', sans-serif;
-    font-size: 14px;
+    font-size: 19.6px;
     letter-spacing: 1px;
     color: var(--text-dim);
 }
@@ -733,7 +788,7 @@ html, body {
 .banner-stats .val {
     font-family: 'Space Mono', monospace;
     font-weight: 700;
-    font-size: 17px;
+    font-size: 23.8px;
 }
 
 .banner-flash {

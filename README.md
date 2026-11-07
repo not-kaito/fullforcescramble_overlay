@@ -48,6 +48,10 @@ Only one phase can be active at a time. Press **Esc** to cancel it before starti
 | Undo any pick or ban | Right click the map in the pool |
 | Cancel the current phase | `Esc` |
 
+**Ban order** is always A B B A, where A is whichever team you start the first ban phase for (one-ban rounds: just A B).
+After each ban, the next team's ban phase starts by itself; after the last ban, the phase goes back to idle.
+If you press Esc partway through, starting a ban phase again picks the order back up.
+
 **Team names**: they come from the lobby automatically. If they're wrong or missing, type them in the
 control panel (autocompletes from players_teams.csv) and press **Apply**. **Use lobby names** switches back.
 
