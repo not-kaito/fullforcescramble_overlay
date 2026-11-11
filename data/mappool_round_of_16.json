@@ -1,0 +1,256 @@
+{
+    "round": "round of 16",
+    "statsIncludeMods": true,
+    "pool": [
+        {
+            "mod": "NM",
+            "maps": [4760653, 5067635, 5978098, 5178360, 2533159]
+        },
+        {
+            "mod": "HD",
+            "maps": [832152, 4751821]
+        },
+        {
+            "mod": "HR",
+            "maps": [5978466, 5717922]
+        },
+        {
+            "mod": "DT",
+            "maps": [5634345, 2367746, 5018503]
+        },
+        {
+            "mod": "FM",
+            "maps": [5240014, 5570532, 3943818]
+        },
+        {
+            "mod": "TB",
+            "maps": [5588824]
+        }
+    ],
+    "beatmaps": {
+        "4760653": {
+            "artist": "ZiGZaG HACKER",
+            "title": "V^3 (Hello World)",
+            "difficulty": "Himada's another",
+            "mapper": "Alvearia",
+            "setId": 2210739,
+            "cover": "https://assets.ppy.sh/beatmaps/2210739/covers/fullsize.jpg",
+            "sr": 5.69,
+            "cs": 3.8,
+            "ar": 9.2,
+            "od": 8.6,
+            "bpm": 230,
+            "length": 100
+        },
+        "5067635": {
+            "artist": "An",
+            "title": "Israfil",
+            "difficulty": "Expert",
+            "mapper": "Konge",
+            "setId": 1307928,
+            "cover": "https://assets.ppy.sh/beatmaps/1307928/covers/fullsize.jpg",
+            "sr": 5.89,
+            "cs": 4,
+            "ar": 9.1,
+            "od": 8.5,
+            "bpm": 188,
+            "length": 174
+        },
+        "5978098": {
+            "artist": "Nanatsukaze",
+            "title": "Replay",
+            "difficulty": "Oyasumi",
+            "mapper": "anothermousey",
+            "setId": 2647124,
+            "cover": "https://assets.ppy.sh/beatmaps/2647124/covers/fullsize.jpg",
+            "sr": 5.61,
+            "cs": 4.2,
+            "ar": 9.2,
+            "od": 8.5,
+            "bpm": 145,
+            "length": 161
+        },
+        "5178360": {
+            "artist": "Kobo Kanaeru",
+            "title": "HELP!!",
+            "difficulty": "jfiu's Expert",
+            "mapper": "Sieu Phan Dong",
+            "setId": 2354803,
+            "cover": "https://assets.ppy.sh/beatmaps/2354803/covers/fullsize.jpg",
+            "sr": 5.6,
+            "cs": 3.8,
+            "ar": 9.2,
+            "od": 8.6,
+            "bpm": 115,
+            "length": 185
+        },
+        "2533159": {
+            "artist": "Aoi Eir",
+            "title": "Lament",
+            "difficulty": "Angelic Sparkle",
+            "mapper": "Nevertary",
+            "setId": 1217489,
+            "cover": "https://assets.ppy.sh/beatmaps/1217489/covers/fullsize.jpg",
+            "sr": 6.06,
+            "cs": 4,
+            "ar": 9.3,
+            "od": 9,
+            "bpm": 185,
+            "length": 307
+        },
+        "832152": {
+            "artist": "Ocelot",
+            "title": "TSUBAKI",
+            "difficulty": "Extra",
+            "mapper": "Hollow Wings",
+            "setId": 364574,
+            "cover": "https://assets.ppy.sh/beatmaps/364574/covers/fullsize.jpg",
+            "sr": 5.92,
+            "cs": 4,
+            "ar": 9,
+            "od": 7.5,
+            "bpm": 199,
+            "length": 181
+        },
+        "4751821": {
+            "artist": "Ogura Yui",
+            "title": "Empty//Princess",
+            "difficulty": "Edit's Insane",
+            "mapper": "Mayoi Shigure",
+            "setId": 2229450,
+            "cover": "https://assets.ppy.sh/beatmaps/2229450/covers/fullsize.jpg",
+            "sr": 5.63,
+            "cs": 4,
+            "ar": 8,
+            "od": 8,
+            "bpm": 172,
+            "length": 200
+        },
+        "5978466": {
+            "artist": "Sasuke Haraguchi feat. Choten-chan",
+            "title": "Cubibibibism",
+            "difficulty": "Kieost's IiiIinNnnnsssSSaaAAne (FFS edit)",
+            "mapper": "Kieost*",
+            "setId": 2647227,
+            "cover": "https://assets.ppy.sh/beatmaps/2647227/covers/fullsize.jpg",
+            "sr": 5.62,
+            "cs": 4.9,
+            "ar": 10,
+            "od": 10,
+            "bpm": 185,
+            "length": 197
+        },
+        "5717922": {
+            "artist": "kikoyu",
+            "title": "FALSE SECURITY",
+            "difficulty": "I just have to run away...",
+            "mapper": "pearto",
+            "setId": 2569611,
+            "cover": "https://assets.ppy.sh/beatmaps/2569611/covers/fullsize.jpg",
+            "sr": 5.78,
+            "cs": 6.5,
+            "ar": 10,
+            "od": 10,
+            "bpm": 193,
+            "length": 119
+        },
+        "5634345": {
+            "artist": "Hoobastank",
+            "title": "The Reason",
+            "difficulty": "Insane",
+            "mapper": "dakiwii",
+            "setId": 2544116,
+            "cover": "https://assets.ppy.sh/beatmaps/2544116/covers/fullsize.jpg",
+            "sr": 5.63,
+            "cs": 4,
+            "ar": 10,
+            "od": 9.4,
+            "bpm": 124,
+            "length": 147
+        },
+        "2367746": {
+            "artist": "Denkishiki Karen Ongaku Shuudan",
+            "title": "Watch out!",
+            "difficulty": "Hard",
+            "mapper": "Lasse",
+            "setId": 1130504,
+            "cover": "https://assets.ppy.sh/beatmaps/1130504/covers/fullsize.jpg",
+            "sr": 5.85,
+            "cs": 4,
+            "ar": 9.7,
+            "od": 9,
+            "bpm": 254,
+            "length": 145
+        },
+        "5018503": {
+            "artist": "-45",
+            "title": "System Zero",
+            "difficulty": "Insane",
+            "mapper": "Kyros_",
+            "setId": 2337316,
+            "cover": "https://assets.ppy.sh/beatmaps/2337316/covers/fullsize.jpg",
+            "sr": 5.89,
+            "cs": 4,
+            "ar": 9.5,
+            "od": 9.4,
+            "bpm": 207,
+            "length": 117
+        },
+        "5240014": {
+            "artist": "inabakumori",
+            "title": "NON-USE",
+            "difficulty": "JFIU-EXTRA",
+            "mapper": "Whithard",
+            "setId": 2360710,
+            "cover": "https://assets.ppy.sh/beatmaps/2360710/covers/fullsize.jpg",
+            "sr": 5.46,
+            "cs": 3.4,
+            "ar": 9,
+            "od": 8.5,
+            "bpm": 220,
+            "length": 209
+        },
+        "5570532": {
+            "artist": "rusino",
+            "title": "Looping the Rooms",
+            "difficulty": "Recursion (cs5)",
+            "mapper": "jykca",
+            "setId": 2516796,
+            "cover": "https://assets.ppy.sh/beatmaps/2516796/covers/fullsize.jpg",
+            "sr": 5.19,
+            "cs": 5,
+            "ar": 8,
+            "od": 8.2,
+            "bpm": 162,
+            "length": 131
+        },
+        "3943818": {
+            "artist": "goreshit",
+            "title": "thinking of you",
+            "difficulty": "extra",
+            "mapper": "Silverboxer",
+            "setId": 426890,
+            "cover": "https://assets.ppy.sh/beatmaps/426890/covers/fullsize.jpg",
+            "sr": 5.77,
+            "cs": 3.6,
+            "ar": 9.5,
+            "od": 8.5,
+            "bpm": 227,
+            "length": 135
+        },
+        "5588824": {
+            "artist": "katagiri",
+            "title": "Kyuukou",
+            "difficulty": "Limit Break",
+            "mapper": "gay nerd",
+            "setId": 2529159,
+            "cover": "https://assets.ppy.sh/beatmaps/2529159/covers/fullsize.jpg",
+            "sr": 6.11,
+            "cs": 3.5,
+            "ar": 9.5,
+            "od": 8.5,
+            "bpm": 216,
+            "length": 320
+        }
+    }
+}
