@@ -53,7 +53,7 @@
 
     /* Ban color -- used for the pool outline/text and the
        "Loading..." pulse on a ban card. */
-    --ban-red: #ff3b3b;
+    --ban-red: #d92b2b;
 
     --card-bg: #1d212b;
     --row-bg: #11141c;

@@ -603,9 +603,13 @@ html, body {
    PICK BANNER
    Spans the full stage width over the picking team's row.
    ========================================================== */
+/* The banner never covers the picking team's lineup and ban card:
+   red's starts right after its ban card, blue's ends just before
+   its ban card. */
 #pick-banner {
+    --banner-inset: calc(var(--side-margin) + var(--lineup-width) + var(--ban-width) + 2 * var(--row-gap));
     position: absolute;
-    left: var(--side-margin);
+    left: var(--banner-inset);
     right: var(--side-margin);
     height: var(--row-height);
     top: var(--row-red-top);
@@ -622,7 +626,23 @@ html, body {
 
 #pick-banner.on-blue {
     top: var(--row-blue-top);
+    left: var(--side-margin);
+    right: var(--banner-inset);
     --team-color: var(--team-blue);
+}
+
+/* Red's card is mirrored: team tab on the right, wipes in from the right */
+#pick-banner.on-red {
+    flex-direction: row-reverse;
+}
+
+#pick-banner.on-red.show .banner-body {
+    animation-name: banner-wipe-left;
+}
+
+@keyframes banner-wipe-left {
+    from { clip-path: inset(0 0 0 100%); }
+    to   { clip-path: inset(0 0 0 0); }
 }
 
 #pick-banner.show {
@@ -1277,21 +1297,45 @@ html, body {
     color: var(--ban-red);
 }
 
-/* Picked: outlined in the picking team's color and dimmed */
+/* Picked: outlined in the picking team's color, darkened and tinted
+   with that color */
 .pool-card.picked-red,
 .pool-card.picked-blue,
 .pool-card.picked-tb {
     border-width: 3px;
 }
 
-.pool-card.picked-red  { border-color: var(--team-red); }
-.pool-card.picked-blue { border-color: var(--team-blue); }
+.pool-card.picked-red  { border-color: var(--team-red); --pick-tint: var(--team-red); }
+.pool-card.picked-blue { border-color: var(--team-blue); --pick-tint: var(--team-blue); }
 .pool-card.picked-tb   { border-color: var(--mod-tb); }
 
 .pool-card.picked-red .pool-bg,
 .pool-card.picked-blue .pool-bg,
 .pool-card.picked-tb .pool-bg {
-    filter: brightness(0.45);
+    filter: brightness(0.38);
+}
+
+/* Picked maps' codes take a lighter shade of the picking team's
+   color (team color mixed ~30% with white), whatever the mod */
+.pool-card.picked-red .pool-code  { color: #ffa4a4; }
+.pool-card.picked-blue .pool-code { color: #d5c8ff; }
+
+/* "color" blend keeps the darkened image's brightness and takes the
+   team color's hue, so the card reads as a dark red / purple */
+.pool-card {
+    isolation: isolate;
+}
+
+.pool-card.picked-red::after,
+.pool-card.picked-blue::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: var(--pick-tint);
+    mix-blend-mode: color;
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 /* ==========================================================
