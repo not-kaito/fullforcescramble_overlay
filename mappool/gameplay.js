@@ -130,6 +130,10 @@ const Gameplay = (() => {
         match.target = readScores(tourney);
 
         const ipcState = Number(tourney.ipcState);
+        // Loaded straight onto the results screen: lock what's there now
+        if (match.ipcState === undefined && ipcState === IPC.Ranking) {
+            match.finalScores = { ...match.target };
+        }
         if (ipcState !== match.ipcState) {
             const previous = match.ipcState;
             match.ipcState = ipcState;
@@ -149,6 +153,12 @@ const Gameplay = (() => {
             }
             renderPanel();
         }
+
+        // On the results screen the scores stay locked to the first
+        // Ranking frame: players leaving the lobby early drop out of
+        // the live totals and could flip the result. Live scores come
+        // back once the results screen closes (finishMap clears this).
+        if (match.finalScores) match.target = { ...match.finalScores };
 
         // Redraw whenever anything shown changes (map, its stats, or
         // its pick status), not just the id -- stats can arrive a
@@ -202,9 +212,9 @@ const Gameplay = (() => {
             setScoresVisible(true);
             if (config('autoSwitchToGameplay') !== false) switchScene('gameplay');
         } else if (current === IPC.Ranking) {
-            // Final scores are locked in here (the client may reset
-            // them once the results screen closes) and the point is
-            // given immediately.
+            // Final scores are locked in here, from the first Ranking
+            // frame (players leaving early change the live totals),
+            // and the point is given immediately from them.
             match.finalScores = { ...match.target };
             match.awaitingReturn = true;
             awardPoint();
