@@ -557,7 +557,7 @@ function showBanner(slot, side, { test = false } = {}) {
     $('banner-team-label').textContent = side.toUpperCase();
 
     $('banner-bg').style.backgroundImage = slot.cover ? `url('${slot.cover}')` : '';
-    $('banner-title').textContent = map.title || `Beatmap ${slot.id}`;
+    setPanningText($('banner-title'), map.title || `Beatmap ${slot.id}`);
     $('banner-artist').textContent = map.artist || '';
     // "[Difficulty] - mapped by Mapper"
     $('banner-mapper').textContent = [
@@ -590,6 +590,27 @@ function showBanner(slot, side, { test = false } = {}) {
 }
 
 const bannerSeconds = () => Number(FFS.data.config.pickBannerSeconds) || 8;
+
+// Single-line text that would be cut off with "..." pans instead:
+// holds at the start, slides to show the end, holds, slides back.
+const PAN_PX_PER_SECOND = 70;
+
+function setPanningText(el, text) {
+    el.classList.remove('panning');
+    el.innerHTML = '';
+    const inner = document.createElement('span');
+    inner.className = 'pan-text';
+    inner.textContent = text;
+    el.appendChild(inner);
+
+    const overflow = inner.offsetWidth - el.clientWidth;
+    if (overflow <= 0) return;
+    el.style.setProperty('--pan-distance', `${-overflow}px`);
+    // Slide time plus the holds at each end (30% of each cycle); at
+    // least 3 s so a title that's barely too long doesn't twitch
+    el.style.setProperty('--pan-duration', `${Math.max(3, (overflow / PAN_PX_PER_SECOND) / 0.7)}s`);
+    el.classList.add('panning');
+}
 
 // Once a pick card (or the tiebreaker card) has had its time on
 // screen, hide it and go to the gameplay scene.
@@ -664,6 +685,31 @@ function showTiebreaker(slot, { test = false } = {}) {
     $('tb-title').textContent = [map.artist, map.title].filter(Boolean).join(' - ') || `Beatmap ${slot.id}`;
     $('tb-diff').textContent = map.difficulty ? `[${map.difficulty}]` : '';
     $('tb-mapper').textContent = map.mapper ? `mapped by ${map.mapper}` : '';
+
+    // Stats row under the mapper: dim labels, numbers in TB gold
+    const stats = FFS.modStats(slot);
+    const statsRow = $('tb-stats');
+    statsRow.innerHTML = '';
+    for (const [label, value] of [
+        ['SR', `${stats.sr.toFixed(2)}★`],
+        ['CS', FFS.formatDiffStat(stats.cs)],
+        ['AR', FFS.formatDiffStat(stats.ar)],
+        ['OD', FFS.formatDiffStat(stats.od)],
+        ['BPM', String(Math.round(stats.bpm))],
+        ['LENGTH', FFS.formatLength(stats.length)],
+    ]) {
+        const stat = document.createElement('span');
+        stat.className = 'stat';
+        const lbl = document.createElement('span');
+        lbl.className = 'lbl';
+        lbl.textContent = label;
+        const val = document.createElement('span');
+        val.className = 'val';
+        val.textContent = value;
+        stat.append(lbl, val);
+        statsRow.appendChild(stat);
+    }
+
     fillMarquee($('tb-label'), () => {
         const word = document.createElement('span');
         word.className = 'marquee-word';

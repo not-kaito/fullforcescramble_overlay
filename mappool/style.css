@@ -733,6 +733,26 @@ html, body {
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
+/* Too long to fit: no "...", the text pans back and forth instead
+   (mappool.js setPanningText sets the distance and duration). Starts
+   once the card has wiped in. */
+.pan-text {
+    display: inline-block;
+}
+
+#banner-title.panning {
+    text-overflow: clip;
+}
+
+#banner-title.panning .pan-text {
+    animation: text-pan var(--pan-duration, 4s) ease-in-out 0.8s infinite alternate both;
+}
+
+@keyframes text-pan {
+    0%, 15%   { transform: translateX(0); }
+    85%, 100% { transform: translateX(var(--pan-distance, 0px)); }
+}
+
 #banner-artist {
     font-family: 'Google Sans', sans-serif;
     font-weight: 500;
@@ -985,6 +1005,7 @@ html, body {
 
 #tb-banner.revealed .tb-content > :nth-child(3) { animation-delay: 0.1s; }
 #tb-banner.revealed .tb-content > :nth-child(4) { animation-delay: 0.2s; }
+#tb-banner.revealed .tb-content > :nth-child(5) { animation-delay: 0.3s; }
 
 @keyframes tb-line-rise {
     from { transform: translateY(260px); opacity: 0; }
@@ -1030,6 +1051,34 @@ html, body {
     font-size: 32px;
     margin-top: 8px;
     opacity: 0.8;
+}
+
+/* Map stats under the mapper line, numbers in TB gold */
+#tb-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 22px;
+}
+
+#tb-stats .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+#tb-stats .lbl {
+    font-family: 'Share Tech', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+#tb-stats .val {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--mod-tb);
 }
 
 /* ==========================================================
