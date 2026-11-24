@@ -1111,6 +1111,9 @@ function onSongChange(beatmapId) {
 
     const autoPickEnabled = state.autoPick && FFS.data.config.autoPickOnSongChange !== false;
     if (!autoPickEnabled) return setStatus(`Song changed: ${slot.code} (auto-pick off)`);
+    // Loaded during the results screen: back to the mappool first,
+    // then picked after the point animation
+    if (Gameplay.quickPick(slot)) return;
     if (slot.mod === 'TB') return pickTiebreaker(slot);
     if (state.phase?.type !== 'pick') return setStatus(`Song changed: ${slot.code} (no pick phase active)`);
     selectMap(slot);

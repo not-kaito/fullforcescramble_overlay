@@ -38,7 +38,14 @@ const Gameplay = (() => {
         // until a map is actually played after the page loads.
         awarded: true,
         pendingReturn: null,             // animations to play on return
+        returning: false,                // back on the mappool, point animation not played yet
+        // Quick pick: a pool map the referee loaded while the results
+        // screen was still up. Picked once the point animation is done.
+        quickPick: null,
     };
+
+    // How long the point animation gets before a quick pick's card
+    const QUICK_PICK_DELAY_MS = 1600;
 
     // ------------------------------------------------------
     // SCENES
@@ -284,6 +291,7 @@ const Gameplay = (() => {
 
         // Someone reached the winning score: straight to the winner screen
         if (pool && matchWinner()) {
+            match.quickPick = null;
             state.phase = null;
             render();
             switchScene('winner');
@@ -292,11 +300,17 @@ const Gameplay = (() => {
 
         switchScene('mappool');
         renderPanel();
-        if (!pending) return;
+        if (!pending) {
+            // No point to show (warmup / tie): a quick pick goes right in
+            if (match.quickPick) setTimeout(applyQuickPick, 350);
+            return;
+        }
 
         // Let the scene fade in (0.35 s), then hold half a second so the
         // point animation doesn't get lost in the transition
+        match.returning = true;
         setTimeout(() => {
+            match.returning = false;
             const { winner, pickTeam, pickIndex } = pending;
             let next = null;
             if (isTiebreakerScore()) {
@@ -311,7 +325,37 @@ const Gameplay = (() => {
             setStatus(isTiebreakerScore()
                 ? `${winner.toUpperCase()} won the point · TIEBREAKER next`
                 : `${winner.toUpperCase()} won the point${next ? ` · ${next.toUpperCase()} picks next` : ''}`);
+            if (match.quickPick) setTimeout(applyQuickPick, QUICK_PICK_DELAY_MS);
         }, 350 + 500);
+    }
+
+    // ------------------------------------------------------
+    // QUICK PICK
+    // The next team picked while the results screen was still up and
+    // the referee loaded the map right away. Called on every song
+    // change; returns true if the map was taken as a quick pick.
+    // ------------------------------------------------------
+    function quickPick(slot) {
+        if (match.awaitingReturn) {
+            // Still on the results screen: go back to the mappool now
+            match.quickPick = slot;
+            finishMap();
+            return true;
+        }
+        if (match.returning) {
+            // Already heading back; pick once the point animation plays
+            match.quickPick = slot;
+            return true;
+        }
+        return false;
+    }
+
+    // Handles the queued map like a normal song change, now that the
+    // next team's pick phase (or the tiebreaker) is set up.
+    function applyQuickPick() {
+        const slot = match.quickPick;
+        match.quickPick = null;
+        if (slot) onSongChange(slot.id);
     }
 
     // The winner's lineup card flashes and its score pops; the
@@ -505,6 +549,7 @@ const Gameplay = (() => {
     return {
         init,
         onTosu,
+        quickPick,
         switchScene,
         renderTeam,
         renderPoints,
