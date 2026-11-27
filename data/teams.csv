@@ -91,9 +91,5 @@ ALO,alo
 TRLY,:trolley:
 FA2,FA Team 2
 FA6,FA Team 6
-BOCHI,team bochi
-IHCOB,team ihcob
-DOROL,:doroleft:
-DOROR,:dororight:
-REDCHI,redchi
-BLUECHI,bluechi
+BOCHI,bochiwide
+RYO,ryowide
